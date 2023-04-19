@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Permission
+from django.contrib.auth.models import PermissionsMixin
 # Create your models here.
 
 class MyAccountManager(BaseUserManager):
@@ -40,7 +41,7 @@ class MyAccountManager(BaseUserManager):
         
         return user
     
-class Account(AbstractBaseUser):
+class Account(AbstractBaseUser,PermissionsMixin):
     first_name   = models.CharField(max_length=50)
     last_name    = models.CharField(max_length=50)
     username     = models.CharField(max_length=50,unique=True)
@@ -55,12 +56,24 @@ class Account(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+        
+
     
+
+    
+    
+
     USERNAME_FIELD = 'email' # to login by email in the system
     REQUIRED_FIELDS = ['username','first_name','last_name']
     
     objects = MyAccountManager()
     
+    def save(self, *args, **kwargs):
+        if not self.pk:  # check if this is a new object being saved
+            self.is_superuser = False
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return self.email
     
